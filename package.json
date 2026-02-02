@@ -1,0 +1,29 @@
+{
+  "name": "looom-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev":"nodemon src/index.js;" 
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sahanakalyani/looom-backend.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/sahanakalyani/looom-backend/issues"
+  },
+  "homepage": "https://github.com/sahanakalyani/looom-backend#readme",
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "pg": "^8.18.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  }
+}
