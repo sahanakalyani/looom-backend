@@ -1,11 +1,9 @@
 import express from "express";
-import { register } from "../controller/auth.controller.js";
-import { requireFilds } from "../middleware/validate.js";
-
-
-
+import { login, register } from "../controllers/auth.controller.js";
+import { requireFields } from "../middleware/validate.js";
 
 const router = express.Router();
-router.post('/register',requireFilds(["username","password"]), register);
+router.post ("/register", requireFields(["username", "password"]), register);
+router.post ("/login", requireFields(["username", "password"]), login);
 
-export default router
+export default router;
