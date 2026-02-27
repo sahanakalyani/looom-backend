@@ -1,4 +1,5 @@
-import { asyncHandler } from "../middleware/async-handler";
+import { pool } from "../db.js";
+import { asyncHandler } from "../middleware/async-handler.js";
 
 export const searchAll = asyncHandler(async (req, res) => {
   const q = req.query.q?.trim();
@@ -11,14 +12,14 @@ export const searchAll = asyncHandler(async (req, res) => {
     FROM posts p
     JOIN users u ON u.user_id = p.user_id
     WHERE to_tsvector('simple', p.content) @@ to_tsquery('simple', $1) ORDER BY created DESC LIMIT 10`,
-    [searchTerm]
+    [searchTerm],
   );
   const usersPromise = pool.query(
     `SELECT  user_id, username 
     FROM users
     WHERE to_tsvector('simple', username) @@ to_tsquery('simple', $1) LIMIT 10`,
-    [searchTerm]
+    [searchTerm],
   );
-  const [posts,users] = await Promise.all([postsPromise, usersPromise]);
-  res.json({ posts: posts.rows, users: users.rows});
+  const [posts, users] = await Promise.all([postsPromise, usersPromise]);
+  res.json({ posts: posts.rows, users: users.rows });
 });

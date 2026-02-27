@@ -5,7 +5,7 @@ import { pool } from "./db.js";
 import { initDatabase } from "../db/init.js";
 import authRoutes from "./routes/auth.routes.js";
 import postRoutes from "./routes/posts.routes.js";
-import searchRoutes from "./routes/posts.routes.js";
+import searchRoutes from "./routes/search.routes.js";
 
 import likesFollowRoutes from "./routes/likes-follow.routes.js";
 import { errorHandler } from "./middleware/error.js";
