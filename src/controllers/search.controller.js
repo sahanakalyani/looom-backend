@@ -8,7 +8,14 @@ export const searchAll = asyncHandler(async (req, res) => {
     return res.status(400).json({ error: "Search query required" });
   }
 
-  const searchTerm = q.split(" ").join(" & "); // AND search
+  // convert multiple contiguous whitespace to a single ampersand term
+  // but rely on PostgreSQL's plainto_tsquery to safely escape special
+  // characters and handle stemming.  We still collapse blanks so that
+  // "foo   bar" becomes "foo & bar" rather than "foo &&& bar".
+  const searchTerm = q.split(/\s+/).filter(Boolean).join(" & ");
+
+  // allow callers to bump the limit but cap it to avoid abuse
+  const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 10, 1), 50);
 
   const postsPromise = pool.query(
     `
@@ -22,11 +29,11 @@ export const searchAll = asyncHandler(async (req, res) => {
     FROM posts p
     JOIN users u ON u.user_id = p.user_id
     WHERE to_tsvector('simple', p.content)
-          @@ to_tsquery('simple', $1)
-    ORDER BY p.created_at DESC
-    LIMIT 10
+          @@ plainto_tsquery('simple', $1)
+    ORDER BY created_at DESC
+    LIMIT $2
     `,
-    [searchTerm],
+    [searchTerm, limit],
   );
 
   const usersPromise = pool.query(
@@ -34,10 +41,10 @@ export const searchAll = asyncHandler(async (req, res) => {
     SELECT user_id, username
     FROM users
     WHERE to_tsvector('simple', username)
-          @@ to_tsquery('simple', $1)
-    LIMIT 10
+          @@ plainto_tsquery('simple', $1)
+    LIMIT $2
     `,
-    [searchTerm],
+    [searchTerm, limit],
   );
 
   const [posts, users] = await Promise.all([postsPromise, usersPromise]);
@@ -45,5 +52,6 @@ export const searchAll = asyncHandler(async (req, res) => {
   res.json({
     posts: posts.rows,
     users: users.rows,
+    pagination: { limit },
   });
 });
