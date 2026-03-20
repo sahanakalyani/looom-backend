@@ -6,26 +6,27 @@ import { initDatabase } from "../db/init.js";
 import authRoutes from "./routes/auth.routes.js";
 import postRoutes from "./routes/posts.routes.js";
 import searchRoutes from "./routes/search.routes.js";
+import usersRoutes from "./routes/user.routes.js";
 import activityRoutes from "./routes/activity.routes.js";
-
 import likesFollowRoutes from "./routes/likes-follow.routes.js";
 import { errorHandler } from "./middleware/error.js";
-import userRoutes from "./routes/user.routes.js";
 
+// allow frontend origin
 const allowedOrigins = [
   "http://localhost:5173",
-  "http://localhost:5175",
-  "http://localhost:5174",
-];
+  "http://localhost:3001",
+  process.env.CLIENT_URL,
+].filter(Boolean);
 
 const app = express();
+
 app.use(
   cors({
     origin: function (origin, callback) {
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        callback(new Error("Not allowed by cros"));
+        callback(new Error("Not allowed by CORS"));
       }
     },
   }),
@@ -46,13 +47,29 @@ app.use("/api/v1/posts", postRoutes);
 // Likes and follows routes
 app.use("/api/v1", likesFollowRoutes);
 
+// Search Routes
 app.use("/api/v1/search", searchRoutes);
-app.use("/api/v1/users", userRoutes);
-app.use("api/v1/activity ", activityRoutes);
+
+// User Routes
+app.use("/api/v1/users", usersRoutes);
+
+// Activity Routes
+app.use("/api/v1/activity", activityRoutes);
 
 app.use(errorHandler); // must be last
 
-const PORT = process.env.PORT || 3000;
+// Export the app for Vercel Serverless Functions
+export default app;
+
+// Only start the server if not in production
+if (process.env.NODE_ENV !== "production") {
+  const PORT = process.env.PORT || 3000;
+  // Separate local start logic
+  pool.query("SELECT 1").then(() => {
+    console.log("Database connected");
+    app.listen(PORT, () => console.log(`Local server on ${PORT}`));
+  });
+}
 
 // STARTUP SEQUENCE
 async function startServer() {
@@ -72,5 +89,3 @@ async function startServer() {
     process.exit(1); // Stop app if DB fails
   }
 }
-
-startServer();
